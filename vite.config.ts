@@ -24,7 +24,7 @@ export default defineConfig({
       // /api相关接口跨域配置
       '/api': {
         //实际请求地址
-        target: 'http://127.0.0.1:8080',
+        target: 'http://127.0.0.1:8888',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/')
       }

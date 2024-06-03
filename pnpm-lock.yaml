@@ -14,6 +14,9 @@ importers:
       pinia:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.4.5)(vue@3.4.23(typescript@5.4.5))
+      qrcode.vue:
+        specifier: ^3.4.1
+        version: 3.4.1(vue@3.4.23(typescript@5.4.5))
       vue:
         specifier: ^3.4.21
         version: 3.4.23(typescript@5.4.5)
@@ -1664,6 +1667,11 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==, tarball: https://registry.npmmirror.com/punycode/-/punycode-2.3.1.tgz}
     engines: {node: '>=6'}
+
+  qrcode.vue@3.4.1:
+    resolution: {integrity: sha512-wq/zHsifH4FJ1GXQi8/wNxD1KfQkckIpjK1KPTc/qwYU5/Bkd4me0w4xZSg6EXk6xLBkVDE0zxVagewv5EMAVA==, tarball: https://registry.npmmirror.com/qrcode.vue/-/qrcode.vue-3.4.1.tgz}
+    peerDependencies:
+      vue: ^3.0.0
 
   querystringify@2.2.0:
     resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==, tarball: https://registry.npmmirror.com/querystringify/-/querystringify-2.2.0.tgz}
@@ -3730,6 +3738,10 @@ snapshots:
   psl@1.9.0: {}
 
   punycode@2.3.1: {}
+
+  qrcode.vue@3.4.1(vue@3.4.23(typescript@5.4.5)):
+    dependencies:
+      vue: 3.4.23(typescript@5.4.5)
 
   querystringify@2.2.0: {}
 

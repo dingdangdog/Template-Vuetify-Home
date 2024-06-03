@@ -1,76 +1,103 @@
 <template>
-  <v-layout>
-    <v-navigation-drawer>
-      <v-list>
-        <v-list-item title="Drawer left"></v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+  <div class="page-container">
+    <CodeView :qrcode="code" :name="name" v-if="showQrCode" />
 
-    <v-navigation-drawer location="right">
-      <v-list>
-        <v-list-item title="Drawer right"></v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-
-    <v-main id="offcial-main">
-      <v-app-bar>
-        <template v-slot:prepend>
-          <v-avatar>
-            <v-icon icon="mdi-alarm"></v-icon>
-          </v-avatar>
-          <v-app-bar-title>Application bar</v-app-bar-title>
-        </template>
-        <template v-slot:title>
-          <v-tabs v-model="tab">
-            <v-tab value="one">Item One</v-tab>
-            <v-tab value="two">Item Two</v-tab>
-            <v-tab value="three">Item Three</v-tab>
-          </v-tabs>
-        </template>
-        <template v-slot:append>
-          <v-app-bar-nav-icon></v-app-bar-nav-icon>
-        </template>
-      </v-app-bar>
-
-      <v-window v-model="tab">
-        <v-window-item value="one"> <AboutView /> </v-window-item>
-        <v-window-item value="two"> <AboutView /> </v-window-item>
-        <v-window-item value="three"> <AboutView /> </v-window-item>
-      </v-window>
-
-      <v-footer class="text-center d-flex flex-column">
-        <div>
-          <v-btn v-for="icon in icons" :key="icon" :icon="icon" class="mx-4" variant="text"></v-btn>
-        </div>
-
-        <div class="pt-0">
-          Phasellus feugiat arcu sapien, et iaculis ipsum elementum sit amet. Mauris cursus commodo
-          interdum. Praesent ut risus eget metus luctus accumsan id ultrices nunc. Sed at orci sed
-          massa consectetur dignissim a sit amet dui. Duis commodo vitae velit et faucibus. Morbi
-          vehicula lacinia malesuada. Nulla placerat augue vel ipsum ultrices, cursus iaculis dui
-          sollicitudin. Vestibulum eu ipsum vel diam elementum tempor vel ut orci. Orci varius
-          natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-        </div>
-
-        <v-divider></v-divider>
-
-        <div>{{ new Date().getFullYear() }} — <strong>Vuetify</strong></div>
-      </v-footer>
-    </v-main>
-  </v-layout>
+    <v-overlay v-model="overlay" class="justify-center" contained>
+      <v-text> 订单加载中…… </v-text>
+    </v-overlay>
+    <v-text v-if="orderError">订单错误！</v-text>
+    <v-text v-if="paySuccess">支付成功，您现在可以进行其他操作！</v-text>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import AboutView from './AboutView.vue'
+import CodeView from './CodeView.vue'
+import { preOrder, queryOrder } from '@/api/api.alipay'
+import type { PreOrder } from '@/api/types/alipay.type';
 
-const tab = ref(null)
+const showQrCode = ref(false)
+const orderError = ref(false)
+const paySuccess = ref(false)
+const overlay = ref(true)
 
-const icons = ref(['mdi-facebook', 'mdi-twitter', 'mdi-linkedin', 'mdi-instagram'])
+const parseURLParams = (url: string): Record<string, string> => {
+  const params: Record<string, string> = {}
+  const queryString = url.split('?')[1]
+  if (queryString) {
+    const keyValuePairs = queryString.split('&')
+    keyValuePairs.forEach((pair) => {
+      const [key, value] = pair.split('=')
+      params[key] = decodeURIComponent(value)
+    })
+  }
+  return params
+}
+
+// const decodeURIComponent = (value: string): string => {
+//   value = value.replace(/%25/g, '%')
+//   return value.replace(/%25/g, '%')
+// }
+
+const url = window.location.href
+// 解析URL，获取参数
+const params = parseURLParams(url)
+const code = ref('')
+const name = ref(params['name'])
+
+const order = ref<PreOrder>({})
+
+// 一个测试URL：http://127.0.0.1:9090/?order_no=2024050815540008&name=%E6%B5%8B%E8%AF%95&money=0.01&discount=
+if (params['order_no'] !== undefined) {
+  preOrder({
+    order_no: params['order_no'],
+    name: params['name'],
+    total_amount: params['money']
+  }).then((res) => {
+    // 关闭蒙版
+    overlay.value = false
+    if (res.c != "200" || !res.d || res.d.code != "10000"){
+      // 接口错误，显示订单错误提示
+      orderError.value = true
+    } else {
+      order.value = res.d
+      code.value = order.value.qr_code
+      // 接口正常，显示二维码
+      showQrCode.value = true
+
+      var searchOrder = setInterval(() => {
+        // 定时任务轮询查询订单
+        queryOrder({order_no: order.value.out_trade_no}).then((res) => {
+          if (res.c == "200"){
+            // 支付成功，结束定时任务
+            clearInterval(searchOrder);
+            // 显示支付成功提示
+            paySuccess.value = true
+            // 关闭二维码
+            showQrCode.value = false
+          }
+        })
+      }, 3000)
+    }
+  }).catch((err) => {
+    orderError.value = true
+    overlay.value = false
+  })
+} else {
+  orderError.value = true
+  overlay.value = false
+}
+
+// 根据参数调用后端接口
+
+// 生成二维码
 </script>
 
 <style scoped>
-.v-navigation-drawer {
-  border: 0 !important;
+.page-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
