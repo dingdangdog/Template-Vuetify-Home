@@ -2,6 +2,8 @@
 
 这是一个简单的首页前端模板项目，如需开发官网首页，可以取之即用。
 
+Demo: https://home.template.oldmoon.top/
+
 ## 页面截图
 
 ![home](./images/home.jpg)
